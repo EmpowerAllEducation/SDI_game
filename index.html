@@ -760,13 +760,68 @@ body::before {
 }
 :root[data-contrast="high"] .law { border: 3px solid var(--ink); }
 
-/* Scroll-linked entrances where supported (transform only; content stays readable) */
-@supports (animation-timeline: view()) {
-  .lens, .compare-col, .law, .extra {
-    animation: scroll-in linear both; animation-timeline: view(); animation-range: entry 0% entry 45%;
-  }
-  @keyframes scroll-in { from { transform: translateY(28px) scale(.97); opacity: .45; } to { transform: none; opacity: 1; } }
+/* ---------- Landing: chooser tabs + explore tiles ---------- */
+.chooser { overflow: hidden; display: grid; gap: 1.1rem; }
+.tabs {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
+  border-radius: 999px; background: var(--surface-2); border: var(--bw) solid var(--line);
 }
+.tabs [role="tab"] {
+  min-height: calc(var(--tap) - 6px); padding: .4em .5em; border-radius: 999px; border: var(--bw) solid transparent;
+  background: transparent; color: var(--ink); cursor: pointer; font-weight: 500; font-size: .92rem; line-height: 1.15;
+  transition: background-color .25s ease, color .25s ease, box-shadow .25s ease;
+}
+.tabs [role="tab"]:hover { background: var(--surface); }
+.tabs [role="tab"][aria-selected="true"] { background: var(--btn); color: var(--btn-ink); font-weight: 600; box-shadow: var(--btn-glow); }
+:root[data-contrast="high"] .tabs [role="tab"][aria-selected="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+.tabpanel { animation: rise-in .45s var(--ease-out) both; min-width: 0; }
+.mode-panel { position: relative; display: flex; flex-direction: column; gap: .8rem; }
+.mode-panel > *:not(.mode-num) { position: relative; }
+.mode-title { font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 800; color: var(--accent); }
+.mode-panel .mode-num { right: -.1em; bottom: -.45em; font-size: clamp(8rem, 14vw, 10rem); }
+.mode-panel .band-pick { gap: .4rem; }
+.mode-go { display: flex; align-items: center; gap: .5rem 1rem; flex-wrap: wrap; margin-top: .2rem; }
+.mode-go .best { margin: 0; }
+.try .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 16px; }
+.try .seg button { font-size: .88rem; padding-inline: .6em; border-radius: 12px; }
+
+.explore { margin-top: clamp(2rem, 5vw, 3.5rem); display: grid; gap: .8rem; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+@media (max-width: 980px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
+.tile {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .85rem; text-align: left;
+  min-height: calc(var(--tap) + 24px); padding: .9rem 1rem; border-radius: 18px; cursor: pointer; color: var(--ink);
+  background: var(--surface); border: var(--bw) solid var(--line); box-shadow: var(--shadow);
+  transition: translate .4s var(--ease-out), box-shadow .4s var(--ease-out), border-color .3s ease;
+  animation: rise-in .7s var(--ease-out) both;
+}
+.tile:nth-child(1) { animation-delay: .5s; } .tile:nth-child(2) { animation-delay: .58s; }
+.tile:nth-child(3) { animation-delay: .66s; } .tile:nth-child(4) { animation-delay: .74s; }
+.tile:hover { translate: 0 -3px; box-shadow: var(--shadow-lg); border-color: var(--accent); }
+.tile-icon { width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--gold-soft); color: var(--accent); flex: none; transition: transform .5s var(--ease-spring); }
+:root[data-contrast="high"] .tile-icon { border: 2px solid var(--ink); }
+.tile:hover .tile-icon { transform: rotate(-10deg) scale(1.08); }
+.tile-icon .ico { width: 1.3rem; height: 1.3rem; }
+.tile-text { display: grid; gap: .1rem; min-width: 0; }
+.tile-name { font-family: var(--font-display); font-weight: 800; font-size: 1.12rem; line-height: 1.2; }
+.tile-desc { font-size: .85rem; color: var(--muted); line-height: 1.3; }
+.tile-arrow { color: var(--accent); transition: transform .35s var(--ease-spring); }
+.tile:hover .tile-arrow { transform: translateX(4px); }
+
+@media (max-width: 520px) {
+  .try-wrap { padding: .35rem .15rem; }
+  .deck { inset: .35rem .15rem; }
+  .try.chooser { padding: 1rem; }
+  .tabs [role="tab"] { font-size: .86rem; padding-inline: .3em; }
+}
+#panel-try.flip { animation: deal .5s var(--ease-out) both; }
+#try-text:focus { outline: none; }
+dialog.dlg-wide { width: min(62rem, calc(100vw - 2rem)); }
+dialog .lenses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 600px) { dialog .lenses { grid-template-columns: 1fr; } }
+dialog .law { margin: 0; }
+dialog .key h3 { font-size: .78rem; }
 
 /* ---------- Play ---------- */
 .dots { gap: 5px; }
@@ -979,6 +1034,7 @@ footer::after {
 
     <!-- ================= HOME ================= -->
     <section id="screen-home" data-screen aria-labelledby="home-title">
+      <div id="resume-slot"></div>
       <div class="hero">
         <div>
           <p class="eyebrow">Practice for teachers &amp; administrators · Pre-K–8</p>
@@ -1000,126 +1056,94 @@ footer::after {
         </svg>
         <span class="deck d1" aria-hidden="true"></span>
         <span class="deck d2" aria-hidden="true"></span>
-        <div class="try" aria-labelledby="try-title">
-          <div class="try-head">
-            <h2 class="eyebrow" id="try-title">Try one now</h2>
-            <span class="chip" id="try-meta"></span>
+        <div class="try chooser">
+          <div class="tabs" role="tablist" aria-label="Ways to play">
+            <button type="button" role="tab" id="tab-try" aria-controls="panel-try" aria-selected="true">Try one</button>
+            <button type="button" role="tab" id="tab-quick" aria-controls="panel-quick" aria-selected="false" tabindex="-1">Quick Check</button>
+            <button type="button" role="tab" id="tab-full" aria-controls="panel-full" aria-selected="false" tabindex="-1">Full Check</button>
           </div>
-          <p class="try-text" id="try-text"></p>
-          <p class="try-q">Is this specially designed instruction?</p>
-          <div class="answers" id="try-answers">
-            <button type="button" class="answer" data-try="yes"><svg class="ico" aria-hidden="true"><use href="#i-yes"/></svg>Yes, it’s SDI</button>
-            <button type="button" class="answer" data-try="no"><svg class="ico" aria-hidden="true"><use href="#i-no"/></svg>No, it’s not SDI</button>
+          <div class="tabpanel" role="tabpanel" id="panel-try" aria-labelledby="tab-try">
+            <div class="try-head">
+              <h2 class="eyebrow" id="try-title">Try one now</h2>
+              <span class="chip" id="try-meta"></span>
+            </div>
+            <p class="try-text" id="try-text"></p>
+            <p class="try-q">Is this specially designed instruction?</p>
+            <div class="answers" id="try-answers">
+              <button type="button" class="answer" data-try="yes"><svg class="ico" aria-hidden="true"><use href="#i-yes"/></svg>Yes, it’s SDI</button>
+              <button type="button" class="answer" data-try="no"><svg class="ico" aria-hidden="true"><use href="#i-no"/></svg>No, it’s not SDI</button>
+            </div>
+            <div class="try-result" id="try-result" aria-live="polite"></div>
           </div>
-          <div class="try-result" id="try-result" aria-live="polite"></div>
+          <div class="tabpanel" role="tabpanel" id="panel-quick" aria-labelledby="tab-quick" hidden>
+            <div class="mode-panel">
+              <span class="mode-num" aria-hidden="true">10</span>
+              <div class="mode-top">
+                <h2 class="mode-title">Quick Check</h2>
+                <span class="mode-icon" aria-hidden="true"><svg class="ico"><use href="#i-bolt"/></svg></span>
+              </div>
+              <div class="mode-meta"><span><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>10 scenarios</span><span><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg>About 3–5 minutes</span></div>
+              <div class="pips" data-n="10" aria-hidden="true"></div>
+              <p class="desc">A fast warm-up with 5 SDI examples and 5 non-examples. Good before a meeting, as a staff opener, or to check yourself between IEPs.</p>
+              <div class="band-pick">
+                <span class="eyebrow" id="band-label-quick">Grade band</span>
+                <div class="seg band-seg" role="group" aria-labelledby="band-label-quick"></div>
+              </div>
+              <div class="mode-go">
+                <button class="btn btn-primary" type="button" data-start="quick">Start Quick Check <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+                <p class="best" id="best-quick"></p>
+              </div>
+            </div>
+          </div>
+          <div class="tabpanel" role="tabpanel" id="panel-full" aria-labelledby="tab-full" hidden>
+            <div class="mode-panel">
+              <span class="mode-num" aria-hidden="true">20</span>
+              <div class="mode-top">
+                <h2 class="mode-title">Full Check</h2>
+                <span class="mode-icon" aria-hidden="true"><svg class="ico"><use href="#i-layers"/></svg></span>
+              </div>
+              <div class="mode-meta"><span><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>20 scenarios</span><span><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg>About 10 minutes</span></div>
+              <div class="pips" data-n="20" aria-hidden="true"></div>
+              <p class="desc">The deeper version: 10 SDI examples and 10 non-examples, including side-by-side pairs where the same student gets an accommodation in one scenario and SDI in another.</p>
+              <div class="band-pick">
+                <span class="eyebrow" id="band-label-full">Grade band</span>
+                <div class="seg band-seg" role="group" aria-labelledby="band-label-full"></div>
+              </div>
+              <div class="mode-go">
+                <button class="btn btn-primary" type="button" data-start="full">Start Full Check <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+                <p class="best" id="best-full"></p>
+              </div>
+            </div>
+          </div>
         </div>
         </div>
       </div>
 
-      <div class="section" aria-labelledby="modes-title">
-        <div id="resume-slot"></div>
-        <div class="section-head">
-          <div>
-            <h2 id="modes-title">Choose your check</h2>
-            <p>Every check mixes SDI examples with non-examples in equal numbers. Take as long as you need.</p>
-          </div>
-          <div class="band-pick">
-            <span class="eyebrow" id="band-label">Grade band</span>
-            <div class="seg" role="group" aria-labelledby="band-label" id="band-seg"></div>
-          </div>
+      <nav class="explore" aria-labelledby="explore-title">
+        <h2 class="eyebrow" id="explore-title">More to explore</h2>
+        <div class="tiles">
+          <button type="button" class="tile" data-dialog="dlg-lenses">
+            <span class="tile-icon" aria-hidden="true"><svg class="ico"><use href="#i-need"/></svg></span>
+            <span class="tile-text"><span class="tile-name">The six SDI lenses</span><span class="tile-desc">The questions behind every answer</span></span>
+            <svg class="ico tile-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
+          <button type="button" class="tile" data-dialog="dlg-compare">
+            <span class="tile-icon" aria-hidden="true"><svg class="ico"><use href="#i-pair"/></svg></span>
+            <span class="tile-text"><span class="tile-name">Accommodation or SDI?</span><span class="tile-desc">The distinction people miss most</span></span>
+            <svg class="ico tile-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
+          <button type="button" class="tile" data-dialog="dlg-law">
+            <span class="tile-icon" aria-hidden="true"><svg class="ico"><use href="#i-iep"/></svg></span>
+            <span class="tile-text"><span class="tile-name">What the law says</span><span class="tile-desc">IDEA’s definition of SDI</span></span>
+            <svg class="ico tile-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
+          <button type="button" class="tile" id="open-presenter">
+            <span class="tile-icon" aria-hidden="true"><svg class="ico"><use href="#i-users"/></svg></span>
+            <span class="tile-text"><span class="tile-name">Presenter mode</span><span class="tile-desc">Team play for PD sessions</span></span>
+            <svg class="ico tile-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
+          </button>
         </div>
-
-        <div class="modes">
-          <article class="mode" aria-labelledby="mode-quick-title">
-            <span class="mode-num" aria-hidden="true">10</span>
-            <div class="mode-top">
-              <h3 id="mode-quick-title">Quick Check</h3>
-              <span class="mode-icon" aria-hidden="true"><svg class="ico"><use href="#i-bolt"/></svg></span>
-            </div>
-            <div class="mode-meta"><span><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>10 scenarios</span><span><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg>About 3–5 minutes</span></div>
-            <div class="pips" data-n="10" aria-hidden="true"></div>
-            <p class="desc">A fast warm-up. Good before a meeting, as a staff opener, or to check yourself between IEPs.</p>
-            <div>
-              <p class="best" id="best-quick"></p>
-              <button class="btn btn-primary" type="button" data-start="quick">Start Quick Check <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-            </div>
-          </article>
-          <article class="mode" aria-labelledby="mode-full-title">
-            <span class="mode-num" aria-hidden="true">20</span>
-            <div class="mode-top">
-              <h3 id="mode-full-title">Full Check</h3>
-              <span class="mode-icon" aria-hidden="true"><svg class="ico"><use href="#i-layers"/></svg></span>
-            </div>
-            <div class="mode-meta"><span><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>20 scenarios</span><span><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg>About 10 minutes</span></div>
-            <div class="pips" data-n="20" aria-hidden="true"></div>
-            <p class="desc">The deeper version. Includes side-by-side pairs: the same student with an accommodation in one scenario and SDI in another.</p>
-            <div>
-              <p class="best" id="best-full"></p>
-              <button class="btn btn-primary" type="button" data-start="full">Start Full Check <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-            </div>
-          </article>
-        </div>
-
-        <div class="extra">
-          <div class="extra-body">
-            <span class="mode-icon" aria-hidden="true"><svg class="ico"><use href="#i-users"/></svg></span>
-            <div>
-              <h3>Presenter mode</h3>
-              <p>For PD sessions and staff meetings. Project it, let 2–4 teams talk it over, then reveal the answer and keep score.</p>
-            </div>
-          </div>
-          <button class="btn btn-line" type="button" id="open-presenter">Set up teams <svg class="ico" aria-hidden="true"><use href="#i-arrow"/></svg></button>
-        </div>
-      </div>
-
-      <div class="section" aria-labelledby="lenses-title">
-        <div class="section-head">
-          <div>
-            <h2 id="lenses-title">The six SDI lenses</h2>
-            <p>Every answer is explained with these questions, drawn from the Empower All Education SDI Guiding Questions. SDI holds up under all six.</p>
-          </div>
-        </div>
-        <div class="lenses" id="lens-ref"></div>
-      </div>
-
-      <div class="section" aria-labelledby="compare-title">
-        <div class="section-head">
-          <div>
-            <h2 id="compare-title">Accommodation or SDI?</h2>
-            <p>This is the distinction people miss most often.</p>
-          </div>
-        </div>
-        <div class="compare">
-          <div class="compare-col">
-            <h3>Accommodation</h3>
-            <ul>
-              <li>Changes <strong>how</strong> a student gets to the learning or shows what they know</li>
-              <li>Examples: extended time, audiobooks, preferential seating, a word bank, a calculator</li>
-              <li>Often stays in place for as long as the student needs it</li>
-              <li>The student still does the same learning</li>
-            </ul>
-          </div>
-          <span class="vs" aria-hidden="true">vs</span>
-          <div class="compare-col sdi">
-            <h3>Specially designed instruction</h3>
-            <ul>
-              <li>Changes <strong>the instruction itself</strong>: what’s taught, how, or how it’s delivered</li>
-              <li>Someone teaches a skill or strategy, often by modeling and guided practice</li>
-              <li>Support is planned to fade as the student becomes independent</li>
-              <li>Tied to an IEP goal and measured with data</li>
-            </ul>
-          </div>
-        </div>
-        <p class="compare-note">Many students need both. A 7th grader with dyslexia can use audiobooks for the class novel (accommodation) and get explicit decoding instruction (SDI) at the same time.</p>
-      </div>
-
-      <div class="section" aria-labelledby="law-title">
-        <div class="section-head"><div><h2 id="law-title">What the law says</h2></div></div>
-        <figure class="law"><span class="law-mark" aria-hidden="true">“</span>
-          <blockquote>Specially designed instruction means adapting, as appropriate to the needs of an eligible child under this part, the content, methodology, or delivery of instruction (i) to address the unique needs of the child that result from the child’s disability; and (ii) to ensure access of the child to the general curriculum, so that the child can meet the educational standards within the jurisdiction of the public agency that apply to all children.</blockquote>
-          <figcaption>Individuals with Disabilities Education Act (IDEA) regulations, 34 CFR §300.39(b)(3)</figcaption>
-        </figure>
-      </div>
+      </nav>
     </section>
 
     <!-- ================= PLAY ================= -->
@@ -1294,6 +1318,67 @@ footer::after {
   </div>
 </footer>
 
+<!-- Reference dialogs -->
+<dialog id="dlg-lenses" class="dlg-wide" aria-labelledby="lenses-dlg-title">
+  <div class="dlg-head">
+    <h2 id="lenses-dlg-title">The six SDI lenses</h2>
+    <button class="icon-btn" type="button" data-close aria-label="Close the six SDI lenses"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dlg-body">
+    <p style="color:var(--muted)">Every answer in the game is explained with these questions, drawn from the Empower All Education SDI Guiding Questions. True SDI holds up under all six.</p>
+    <div class="lenses" id="lens-ref"></div>
+    <div class="key">
+      <h3>IEP goal or eligibility category?</h3>
+      <p>These are different things. A student is <strong>eligible</strong> for special education under one of IDEA’s disability <strong>categories</strong>, such as specific learning disability, autism, or other health impairment. <strong>IEP goals</strong> name the skills being taught, such as written expression, decoding, or social communication. SDI is tied to the student’s goals and the needs behind them, not to the category label.</p>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlg-compare" class="dlg-wide" aria-labelledby="compare-dlg-title">
+  <div class="dlg-head">
+    <h2 id="compare-dlg-title">Accommodation or SDI?</h2>
+    <button class="icon-btn" type="button" data-close aria-label="Close accommodation or SDI"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dlg-body">
+    <p style="color:var(--muted)">This is the distinction people miss most often.</p>
+    <div class="compare">
+      <div class="compare-col">
+        <h3>Accommodation</h3>
+        <ul>
+          <li>Changes <strong>how</strong> a student gets to the learning or shows what they know</li>
+          <li>Examples: extended time, audiobooks, preferential seating, a word bank, a calculator</li>
+          <li>Often stays in place for as long as the student needs it</li>
+          <li>The student still does the same learning</li>
+        </ul>
+      </div>
+      <span class="vs" aria-hidden="true">vs</span>
+      <div class="compare-col sdi">
+        <h3>Specially designed instruction</h3>
+        <ul>
+          <li>Changes <strong>the instruction itself</strong>: what’s taught, how, or how it’s delivered</li>
+          <li>Someone teaches a skill or strategy, often by modeling and guided practice</li>
+          <li>Support is planned to fade as the student becomes independent</li>
+          <li>Tied to an IEP goal and measured with data</li>
+        </ul>
+      </div>
+    </div>
+    <p class="compare-note">Many students need both. A 7th grader with dyslexia, eligible under the specific learning disability category, can use audiobooks for the class novel (an accommodation) and get explicit decoding instruction toward an IEP goal (SDI) at the same time.</p>
+  </div>
+</dialog>
+
+<dialog id="dlg-law" class="dlg-wide" aria-labelledby="law-dlg-title">
+  <div class="dlg-head">
+    <h2 id="law-dlg-title">What the law says</h2>
+    <button class="icon-btn" type="button" data-close aria-label="Close what the law says"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dlg-body">
+    <figure class="law"><span class="law-mark" aria-hidden="true">“</span>
+      <blockquote>Specially designed instruction means adapting, as appropriate to the needs of an eligible child under this part, the content, methodology, or delivery of instruction (i) to address the unique needs of the child that result from the child’s disability; and (ii) to ensure access of the child to the general curriculum, so that the child can meet the educational standards within the jurisdiction of the public agency that apply to all children.</blockquote>
+      <figcaption>Individuals with Disabilities Education Act (IDEA) regulations, 34 CFR §300.39(b)(3)</figcaption>
+    </figure>
+  </div>
+</dialog>
+
 <!-- Accessibility dialog -->
 <dialog id="dlg-a11y" aria-labelledby="a11y-title">
   <div class="dlg-head">
@@ -1458,11 +1543,11 @@ var SCEN = [
   text:'Mila’s IEP goal targets grasping and holding small objects. At the art center, her teacher gives her chunky crayons and pre-cut shapes so she can finish the project with her classmates.',
   why:'Chunky crayons and pre-cut shapes help Mila take part, but nothing is being taught, and she isn’t practicing the grasp her goal targets.',
   note:'Teach a grasp strategy during art, fade the adapted materials over time, and tally her independent attempts.' },
-{ id:'e03', band:'early', grade:'Pre-K', area:'Communication · Speech', pair:'theo', sdi:true, lens:'yyyyyy',
+{ id:'e03', band:'early', grade:'Pre-K', area:'Communication · SLP', pair:'theo', sdi:true, lens:'yyyyyy',
   text:'Theo mostly uses single words, and his IEP goal is two-word phrases. During snack, the SLP models phrases like “more apple,” pauses with an expectant look, and prompts a little less each week. The teacher logs his spontaneous two-word phrases.',
   why:'Modeling, wait time, and fading prompts are teaching moves aimed straight at his goal, and the log shows whether they’re working.',
   note:'Snack is the setting; the SDI is the deliberate modeling and fading built around Theo’s goal.' },
-{ id:'e04', band:'early', grade:'Pre-K', area:'Communication · Speech', pair:'theo', sdi:false, kind:'tool', lens:'pypnnn',
+{ id:'e04', band:'early', grade:'Pre-K', area:'Communication · SLP', pair:'theo', sdi:false, kind:'tool', lens:'pypnnn',
   text:'Theo mostly uses single words. To keep snack time smooth, his teacher hands him a picture card of the snack choices, and he points to what he wants.',
   why:'The picture card gives Theo a way to communicate, but no one is teaching him to build phrases.',
   note:'Use the card to model two-word phrases (“want crackers”), then fade it as he says them himself.' },
@@ -1495,7 +1580,7 @@ var SCEN = [
   why:'This is a specialized, multi-sensory method aimed at her goal, taught step by step, with data collected every week.',
   note:'The dots alone would be a tool. Teaching the routine until she can blend without them is the instruction.' },
 { id:'e12', band:'early', grade:'Pre-K', area:'Social skills', pair:'rosa', sdi:false, kind:'peer', lens:'pypnnn',
-  text:'Rosa has an IEP for social communication. She’s assigned a recess buddy who invites her to play and helps her join games.',
+  text:'Rosa has an IEP goal in social communication: starting play with a peer. She’s assigned a recess buddy who invites her to play and helps her join games.',
   why:'The buddy helps Rosa join in, but Rosa isn’t being taught how to start or join play herself.',
   note:'Teach Rosa a short script for joining play, practice it with role-play, and track her independent attempts.' },
 { id:'e13', band:'early', grade:'Pre-K', area:'Social skills', pair:'rosa', sdi:true, lens:'yyyyyy',
@@ -1503,9 +1588,9 @@ var SCEN = [
   why:'Rosa is explicitly taught a social script tied to her goal, coached in real play, and measured, with the adult stepping back over time.',
   note:'Coaching from a distance is a planned fade toward independence.' },
 { id:'e14', band:'early', grade:'K', area:'Math assessment', sdi:false, kind:'accommodation', lens:'pynnnn',
-  text:'Sam, who has an IEP, takes his kindergarten math assessment in a quiet room with the questions read aloud.',
+  text:'Sam, who has an IEP goal in number recognition, takes his kindergarten math assessment in a quiet room with the questions read aloud.',
   why:'A quiet room and read-aloud change how Sam shows what he knows. They don’t teach him anything.',
-  note:'Keep the accommodation, and add targeted instruction for the skill behind it, with data.' },
+  note:'Keep the accommodation, and add targeted instruction toward his number-recognition goal, with data.' },
 { id:'e15', band:'early', grade:'K', area:'Daily living', sdi:true, lens:'yyyyyy',
   text:'Malik’s IEP goal is to follow the morning arrival routine on his own. His teacher breaks the routine into steps, teaches each one with a photo sequence and backward chaining, and records which steps he completes without prompts.',
   why:'Task analysis and backward chaining are specialized teaching methods matched to his goal, with step-by-step data.',
@@ -1514,11 +1599,11 @@ var SCEN = [
   text:'An OT visits the classroom once a month to check that Nora’s adapted scissors and slant board still fit her, and swaps out anything she has outgrown.',
   why:'Checking equipment keeps Nora’s tools working. No skill is taught during the visit.',
   note:'Use the visit to teach Nora a cutting strategy with her adapted scissors, and leave a simple data sheet for the teacher.' },
-{ id:'e17', band:'early', grade:'K', area:'AAC · Speech', pair:'eli', sdi:true, lens:'yyyyyy',
+{ id:'e17', band:'early', grade:'K', area:'AAC · SLP', pair:'eli', sdi:true, lens:'yyyyyy',
   text:'Eli uses a speech-generating device. His SLP and teacher teach him to find “help” and “more” by modeling those buttons on his device during real routines, then track how often he makes those requests on his own.',
   why:'Adults are teaching Eli to use his device by modeling it in context, aimed at his communication goal, with data on independent use.',
   note:'The device is a tool. Teaching him to use it to communicate is the SDI.' },
-{ id:'e18', band:'early', grade:'K', area:'AAC · Speech', pair:'eli', sdi:false, kind:'tool', lens:'pypnnn',
+{ id:'e18', band:'early', grade:'K', area:'AAC · SLP', pair:'eli', sdi:false, kind:'tool', lens:'pypnnn',
   text:'Eli’s speech-generating device is charged, programmed, and set on his desk each morning so it’s always within reach.',
   why:'Having the device ready is essential access. But a device on a desk isn’t instruction. Someone has to teach him to use it.',
   note:'Model words on his device during real routines and track his independent requests.' },
@@ -1532,11 +1617,11 @@ var SCEN = [
   note:'A tool can sit inside SDI when it’s being taught, measured, and faded.' },
 
 /* ---------- Grades 1 – 5 ---------- */
-{ id:'l01', band:'elem', grade:'Grade 2', area:'Expressive language · Speech', pair:'deshawn', sdi:true, lens:'yyyyyy',
+{ id:'l01', band:'elem', grade:'Grade 2', area:'Expressive language · SLP', pair:'deshawn', sdi:true, lens:'yyyyyy',
   text:'Deshawn’s IEP goal is to describe objects using three details. In the science lesson, his teacher and the SLP teach him a “touch three” strategy: he touches a finger for size, color, and use as he describes. His exit-ticket descriptions are scored each week.',
   why:'A specific strategy is taught inside the content lesson, aimed at his goal, with weekly data.',
   note:'The finger cue fades as the habit takes hold, so Deshawn can use it in reading and writing too.' },
-{ id:'l02', band:'elem', grade:'Grade 2', area:'Expressive language · Speech', pair:'deshawn', sdi:false, kind:'gened', lens:'ppnnnn',
+{ id:'l02', band:'elem', grade:'Grade 2', area:'Expressive language · SLP', pair:'deshawn', sdi:false, kind:'gened', lens:'ppnnnn',
   text:'Deshawn’s IEP goal is to describe objects using details. In cooperative groups, his teacher makes him the timekeeper so he can take part without having to speak in front of the group.',
   why:'The role helps him join in but avoids the very skill his IEP targets. He’s included, but not taught.',
   note:'Give him a speaking role, teach him a describing strategy, and collect his descriptions as data.' },
@@ -1549,7 +1634,7 @@ var SCEN = [
   why:'The word bank does the thinking for her. She finishes the work, but she isn’t learning how to retell on her own.',
   note:'Teach a retell strategy explicitly, and fade the organizer as she gains independence.' },
 { id:'l05', band:'elem', grade:'Grade 4', area:'Math', pair:'gabe', sdi:false, kind:'accommodation', lens:'pypnnn',
-  text:'Gabe has an IEP for math calculation. He may use a multiplication chart and a calculator on all math assignments.',
+  text:'Gabe has an IEP goal in math calculation. He may use a multiplication chart and a calculator on all math assignments.',
   why:'The chart and calculator give him access to grade-level problems. They don’t teach him the facts or a strategy he’ll keep.',
   note:'Teach a strategy, like using known facts to solve harder ones, with daily practice and fluency checks. He can keep the chart for access.' },
 { id:'l06', band:'elem', grade:'Grade 4', area:'Math', pair:'gabe', sdi:true, lens:'yyyyyy',
@@ -1565,7 +1650,7 @@ var SCEN = [
   why:'A specialized multi-sensory method is used for a disability-related need, tied to his IEP goal, with weekly data.',
   note:'Reading the word in a sentence right away helps the skill transfer to real text.' },
 { id:'l09', band:'elem', grade:'Grade 5', area:'Writing', pair:'jasmine', sdi:false, kind:'tool', lens:'pypnnn',
-  text:'Jasmine has an IEP for written expression. She uses speech-to-text software to complete all of her writing assignments.',
+  text:'Jasmine is eligible for special education under the specific learning disability category, and her IEP goal is in written expression. She uses speech-to-text software to complete all of her writing assignments.',
   why:'Speech-to-text helps her get ideas down. Using a tool isn’t the same as being taught to write.',
   note:'Teach her to plan and revise using speech-to-text, with explicit editing steps and rubric scores over time.' },
 { id:'l10', band:'elem', grade:'Grade 5', area:'Writing', pair:'jasmine', sdi:true, lens:'yyyyyy',
@@ -1573,7 +1658,7 @@ var SCEN = [
   why:'The tool is still there, but now it sits inside explicit writing instruction aimed at her goal, with data on every draft.',
   note:'Same software as before. The difference is that someone is teaching her to write with it.' },
 { id:'l11', band:'elem', grade:'Grade 3', area:'Attention', pair:'owen', sdi:false, kind:'environment', lens:'pynnnn',
-  text:'Owen, who has ADHD and an IEP, sits near the teacher and away from the door, and he can use a standing desk.',
+  text:'Owen has ADHD and is eligible for special education under the other health impairment category. His IEP goal is staying on task during independent work. He sits near the teacher, away from the door, and can use a standing desk.',
   why:'Seating changes the setting, not the instruction.',
   note:'Teach Owen a self-monitoring routine he learns to run on his own, with data on his on-task intervals.' },
 { id:'l12', band:'elem', grade:'Grade 3', area:'Attention · Self-monitoring', pair:'owen', sdi:true, lens:'yyyyyy',
@@ -1589,7 +1674,7 @@ var SCEN = [
   why:'Video modeling and role-play are specialized methods for his goal, practiced in a real setting and measured.',
   note:'Practicing at lunch, not just in the room, builds transfer.' },
 { id:'l15', band:'elem', grade:'Grade 4', area:'Reading · Social studies', sdi:false, kind:'modification', lens:'pypnnn',
-  text:'Ella has an IEP in reading. On the social studies assignment, she gets a shortened article and answers 5 questions instead of 10.',
+  text:'Ella has an IEP goal in reading comprehension. On the social studies assignment, she gets a shortened article and answers 5 questions instead of 10.',
   why:'Shortening the work changes what’s expected, but nothing is being taught. Ella gets less work, not more instruction.',
   note:'Teach Ella a strategy for informational text, like chunking and summarizing each section, with comprehension checks over time.' },
 { id:'l16', band:'elem', grade:'Grade 4', area:'Executive function', sdi:true, lens:'yyyyyy',
@@ -1619,11 +1704,11 @@ var SCEN = [
   why:'A questioning strategy is explicitly taught for her goal, with modeling, guided practice, and weekly scoring.',
   note:'Two questions Zoe can carry into any text are built for transfer.' },
 { id:'m02', band:'middle', grade:'Grade 6', area:'Reading comprehension', pair:'zoe', sdi:false, kind:'tool', lens:'pypnnn',
-  text:'Zoe has an IEP for reading comprehension. Her teacher gives her a copy of the text with the main ideas already highlighted so she can follow the class discussion.',
+  text:'Zoe has an IEP goal for finding main ideas in informational text. Her teacher gives her a copy of the text with the main ideas already highlighted so she can follow the class discussion.',
   why:'The highlighting gives her the answer. It helps her keep up, but she isn’t learning to find main ideas herself.',
   note:'Teach a main-idea questioning strategy, and fade the pre-highlighting as she starts finding them on her own.' },
 { id:'m03', band:'middle', grade:'Grade 7', area:'Math', pair:'marcus', sdi:false, kind:'accommodation', lens:'pynnnn',
-  text:'Marcus has an IEP for math. He gets extended time and a formula sheet on every test in his pre-algebra class.',
+  text:'Marcus has an IEP goal for solving two-step equations. He gets extended time and a formula sheet on every test in his pre-algebra class.',
   why:'Extended time and a formula sheet change test conditions. They don’t change instruction.',
   note:'Teach a problem-solving routine, like a visual model for equations, with guided practice and weekly probes.' },
 { id:'m04', band:'middle', grade:'Grade 7', area:'Math', pair:'marcus', sdi:true, lens:'yyyyyy',
@@ -1642,12 +1727,12 @@ var SCEN = [
   text:'In 6th-grade science, the teacher posts slides online, gives every student guided notes, and turns on captions for every video.',
   why:'These supports are available to every student. Universal access is good teaching, but it isn’t SDI.',
   note:'For a student with a note-taking goal, explicitly teach a note-taking strategy and track independence.' },
-{ id:'m08', band:'middle', grade:'Grade 6', area:'Vocabulary · Speech', sdi:true, lens:'yyyyyy',
+{ id:'m08', band:'middle', grade:'Grade 6', area:'Vocabulary · SLP', sdi:true, lens:'yyyyyy',
   text:'Andre’s IEP goal is understanding content vocabulary. His teacher and the SLP teach him a word-part strategy: find the prefix, root, and suffix, then predict the meaning. They practice with science terms and check his predictions each week.',
   why:'A specific strategy is explicitly taught for his language goal, practiced with real content, and checked weekly.',
   note:'A word-part strategy works in every class, which builds transfer.' },
 { id:'m09', band:'middle', grade:'Grade 7', area:'Social communication', pair:'grace', sdi:false, kind:'environment', lens:'pynnnn',
-  text:'Grace is autistic and has an IEP for social communication. She eats lunch in a quiet room with a few classmates she chooses.',
+  text:'Grace is eligible for special education under the autism category, and her IEP goal is in social communication. She eats lunch in a quiet room with a few classmates she chooses.',
   why:'The quieter setting may help Grace feel comfortable, but she isn’t being taught social communication skills.',
   note:'Use lunch as a teaching setting: teach a conversation skill with video models and coaching, and record her exchanges.' },
 { id:'m10', band:'middle', grade:'Grade 7', area:'Social communication', pair:'grace', sdi:true, lens:'yyyyyy',
@@ -1663,18 +1748,18 @@ var SCEN = [
   why:'Explicit strategy instruction with memorization and a planned fade, tied to her goal and scored on every paragraph.',
   note:'Memorizing the steps means Jada can use the strategy without the frame.' },
 { id:'m13', band:'middle', grade:'Grade 6', area:'Self-regulation', pair:'ben', sdi:false, kind:'accommodation', lens:'pypnnn',
-  text:'When Ben gets frustrated, he can show a break card and go to a quiet spot for five minutes, as listed in his IEP accommodations.',
+  text:'When Ben gets frustrated, he can show a break card and go to a quiet spot for five minutes, as listed in the accommodations section of his IEP.',
   why:'A break card is an important accommodation. On its own, it doesn’t teach Ben how to recognize or manage frustration.',
   note:'Teach him to notice early signs of frustration and choose a coping strategy, then track how often he does it without prompts.' },
 { id:'m14', band:'middle', grade:'Grade 6', area:'Self-regulation', pair:'ben', sdi:true, lens:'yyyyyy',
   text:'Ben’s IEP goal is to use a coping strategy when he’s frustrated. His special educator teaches him to rate his frustration on a 1–5 scale and match each level to a strategy, practices with scenarios, and tracks how often he picks a strategy on his own.',
   why:'He’s explicitly taught to recognize and respond to his own frustration, practiced ahead of time and measured.',
   note:'The break card can stay. Now Ben is also learning when and why to use it.' },
-{ id:'m15', band:'middle', grade:'Grade 7', area:'Reading · Dyslexia', pair:'liam', sdi:false, kind:'tool', lens:'pynnnn',
-  text:'Liam has dyslexia and an IEP. He listens to audiobooks of the class novels and uses text-to-speech for science articles.',
+{ id:'m15', band:'middle', grade:'Grade 7', area:'Reading · Decoding', pair:'liam', sdi:false, kind:'tool', lens:'pynnnn',
+  text:'Liam has dyslexia and is eligible for special education under the specific learning disability category. His IEP goal is in decoding. He listens to audiobooks of the class novels and uses text-to-speech for science articles.',
   why:'Audiobooks and text-to-speech give Liam access to grade-level content. They don’t teach him to read.',
   note:'Keep the access tools, and add explicit, systematic decoding instruction aimed at his IEP goal, with progress monitoring.' },
-{ id:'m16', band:'middle', grade:'Grade 7', area:'Reading · Dyslexia', pair:'liam', sdi:true, lens:'yyyyyy',
+{ id:'m16', band:'middle', grade:'Grade 7', area:'Reading · Decoding', pair:'liam', sdi:true, lens:'yyyyyy',
   text:'Liam’s IEP goal is decoding multisyllable words. His special educator teaches a syllable routine (spot the vowels, split the word, read each part, blend), practices it with science words, and charts his accuracy every week.',
   why:'A systematic decoding routine is taught for a disability-related need, practiced with real content, and measured weekly.',
   note:'Using science words connects the routine to the reading Liam actually has to do.' },
@@ -1689,9 +1774,9 @@ var SCEN = [
 { id:'m19', band:'middle', grade:'Grade 6', area:'Math', sdi:false, kind:'diff', lens:'nnnnpn',
   text:'Every 6th grader rotates through a “math lab” period, working on adaptive software at their own level.',
   why:'Adaptive software for everyone is differentiation. It isn’t designed around one student’s disability-related need.',
-  note:'For a student with a math IEP goal, add explicit instruction in the target skill and track individual progress.' },
-{ id:'m20', band:'middle', grade:'Grade 7', area:'Deaf / hard of hearing', sdi:true, lens:'yyyyyy',
-  text:'Camila is hard of hearing, and her IEP goal is to fix communication breakdowns. Her teacher of the deaf teaches her to ask “Can you repeat that?” or to request it in writing, practices in small groups, and records how often she uses a repair strategy in class.',
+  note:'For a student with an IEP goal in math, add explicit instruction in the target skill and track individual progress.' },
+{ id:'m20', band:'middle', grade:'Grade 7', area:'Communication repair', sdi:true, lens:'yyyyyy',
+  text:'Camila is eligible for special education under the hearing impairment category. Her IEP goal is to repair communication breakdowns. Her teacher of the deaf and hard of hearing teaches her to ask “Can you repeat that?” or to request it in writing, practices in small groups, and records how often she uses a repair strategy in class.',
   why:'Camila is explicitly taught communication repair strategies tied to her goal, practiced, and measured in real classes.',
   note:'Teaching her to fix breakdowns herself builds independence beyond what any device can provide.' }
 ];
@@ -1957,8 +2042,45 @@ function renderPips() {
     el.innerHTML = h;
   });
 }
+function renderBandSegs() {
+  $$('.band-seg').forEach(function (el) {
+    renderBandSeg(el, homeBand, function (v) {
+      homeBand = v; store.set('band', v);
+      $$('.band-seg').forEach(function (other) {
+        if (other === el) return;
+        $$('[data-band]', other).forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-band') === v)); });
+      });
+    });
+  });
+}
+/* Landing tabs: Try one / Quick Check / Full Check (ARIA tabs pattern with arrow keys) */
+function selectTab(tab, focus) {
+  $$('.tabs [role="tab"]').forEach(function (t) {
+    var on = t === tab;
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on ? 0 : -1;
+    $('#' + t.getAttribute('aria-controls')).hidden = !on;
+  });
+  store.set('tab', tab.id);
+  if (focus) tab.focus();
+}
+(function () {
+  var list = $('.tabs[role="tablist"]');
+  list.addEventListener('click', function (e) { var t = e.target.closest('[role="tab"]'); if (t) selectTab(t, false); });
+  list.addEventListener('keydown', function (e) {
+    var tabs = $$('[role="tab"]', list), i = tabs.indexOf(document.activeElement), j = -1;
+    if (i < 0) return;
+    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') j = 0;
+    else if (e.key === 'End') j = tabs.length - 1;
+    if (j >= 0) { e.preventDefault(); selectTab(tabs[j], true); }
+  });
+  var saved = store.get('tab', null), t = saved && document.getElementById(saved);
+  if (t && t.getAttribute('role') === 'tab') selectTab(t, false);
+})();
 function renderHome() {
-  renderBandSeg($('#band-seg'), homeBand, function (v) { homeBand = v; store.set('band', v); });
+  renderBandSegs();
   var best = store.get('best', {});
   $('#best-quick').textContent = best.quick != null ? 'Your best: ' + best.quick + '%' : '';
   $('#best-full').textContent = best.full != null ? 'Your best: ' + best.full + '%' : '';
@@ -1996,10 +2118,14 @@ function clearAnswers(btns) {
     b.disabled = false; b.setAttribute('aria-pressed', 'false');
   });
 }
-function renderTry() {
-  var s = BY_ID[SAMPLE_ID];
+var trySeen = [];
+function renderTry(id) {
+  var s = BY_ID[id || SAMPLE_ID];
+  trySeen.push(s.id);
   $('#try-meta').textContent = s.grade + ' · ' + s.area;
   $('#try-text').textContent = s.text;
+  $('#try-result').innerHTML = '';
+  clearAnswers($$('[data-try]'));
   $('#try-answers').onclick = function (e) {
     var b = e.target.closest('[data-try]'); if (!b) return;
     var choice = b.getAttribute('data-try') === 'yes';
@@ -2010,7 +2136,16 @@ function renderTry() {
       '<div class="fb ' + (ok ? 'ok' : 'no') + '" style="margin-top:0"><div class="fb-head"><span class="fb-badge">' + icon(ok ? 'check' : 'x') + '</span>' +
       '<div><p class="fb-verdict">' + (ok ? 'Correct!' : 'Not quite.') + '</p><p class="fb-answer">' + verdictLine(s) + '</p></div></div>' +
       '<div class="fb-body"><p>' + esc(s.why) + '</p>' + keyBox(s) +
-      '<div class="btn-row"><button class="btn btn-primary" type="button" data-start="quick">Start a Quick Check ' + icon('arrow') + '</button></div></div></div>';
+      '<div class="btn-row"><button class="btn btn-primary" type="button" id="try-another">' + icon('redo') + 'Try another</button>' +
+      '<button class="btn btn-line" type="button" data-start="quick">Start a Quick Check ' + icon('arrow') + '</button></div></div></div>';
+    $('#try-another').onclick = function () {
+      var pool = SCEN.filter(function (x) { return trySeen.indexOf(x.id) < 0; });
+      if (!pool.length) { trySeen = []; pool = SCEN.filter(function (x) { return x.id !== s.id; }); }
+      var nextS = pool[Math.floor(Math.random() * pool.length)];
+      renderTry(nextS.id);
+      var t = $('#try-text'); t.tabIndex = -1; t.focus();
+      retrigger($('#panel-try'), 'flip');
+    };
     if (ok) setTimeout(function () { burstFrom($('#try-result .fb-badge'), 30, 1); }, 250);
   };
 }
@@ -2269,7 +2404,7 @@ function renderResults() {
 function csvCell(v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
 function downloadCSV() {
   var r = lastResult, g = r.game;
-  var lines = [['#', 'Grade', 'Area', 'Scenario', 'Correct answer', 'Category', 'Your answer', 'Result'].join(',')];
+  var lines = [['#', 'Grade', 'Area', 'Scenario', 'Correct answer', 'Type of support', 'Your answer', 'Result'].join(',')];
   g.answers.forEach(function (a, i) {
     var s = BY_ID[a.id];
     lines.push([i + 1, s.grade, s.area, s.text, s.sdi ? 'SDI' : 'Not SDI', s.sdi ? 'SDI' : KINDS[s.kind].label, a.choice ? 'SDI' : 'Not SDI', a.correct ? 'Correct' : 'Missed'].map(csvCell).join(','));
@@ -2450,6 +2585,7 @@ $('#brand-home').addEventListener('click', function (e) {
   goHome();
 });
 $('#open-help').addEventListener('click', function () { openDialog($('#dlg-help')); });
+$$('[data-dialog]').forEach(function (b) { b.addEventListener('click', function () { openDialog(document.getElementById(b.getAttribute('data-dialog'))); }); });
 $('#open-a11y').addEventListener('click', function () { openDialog($('#dlg-a11y')); });
 $('#ans-yes').addEventListener('click', function () { answer(true); });
 $('#ans-no').addEventListener('click', function () { answer(false); });
